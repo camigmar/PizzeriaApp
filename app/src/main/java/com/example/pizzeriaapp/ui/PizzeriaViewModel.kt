@@ -47,14 +47,23 @@ class PizzeriaViewModel(
         }
     }
 
-    // Muestra la carga con su mensaje, ejecuta la tarea y al terminar (aunque falle) la oculta
+    // Cantidad de cargas en curso: cargando es true mientras haya al menos una
+    // (todo corre en el hilo principal, así que no hay problemas al sumar y restar)
+    private var cargasActivas = 0
+
+    // Muestra la carga con su mensaje, ejecuta la tarea y al terminar (aunque falle)
+    // la descuenta; solo se oculta cuando ya no queda ninguna en curso
     private fun cargar(mensaje: String, tarea: suspend () -> Unit) {
         viewModelScope.launch {
+            cargasActivas++
             estado = estado.copy(cargando = true, mensaje = mensaje)
             try {
                 tarea()
             } finally {
-                estado = estado.copy(cargando = false, mensaje = "")
+                cargasActivas--
+                if (cargasActivas == 0) {
+                    estado = estado.copy(cargando = false, mensaje = "")
+                }
             }
         }
     }
