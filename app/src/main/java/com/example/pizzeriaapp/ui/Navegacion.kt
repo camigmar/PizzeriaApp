@@ -18,7 +18,16 @@ object Rutas {
 fun Navegacion(viewModel: PizzeriaViewModel, modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Rutas.PRINCIPAL, modifier = modifier) {
+    // Al navegar (ir o volver) la pantalla que sale se desvanece y la que entra aparece
+    NavHost(
+        navController = navController,
+        startDestination = Rutas.PRINCIPAL,
+        modifier = modifier,
+        enterTransition = { Animaciones.entrada() },
+        exitTransition = { Animaciones.salida() },
+        popEnterTransition = { Animaciones.entrada() },
+        popExitTransition = { Animaciones.salida() }
+    ) {
         composable(Rutas.PRINCIPAL) {
             PantallaPrincipal(
                 estado = viewModel.estado,
