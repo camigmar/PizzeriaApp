@@ -2,14 +2,15 @@ package com.example.pizzeriaapp.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,54 +49,104 @@ fun PantallaPrincipal(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(Espacios.pantalla),
+            verticalArrangement = Arrangement.spacedBy(Espacios.entreBloques)
         ) {
-            Text(text = "Resumen de la pizzería", style = MaterialTheme.typography.headlineSmall)
+            TituloPantalla("Resumen de la pizzería")
 
             // Contenedor del resumen: "Cargando..." y los datos ocupan el mismo lugar,
             // así uno se desvanece mientras el otro aparece sin que la pantalla salte
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Box(modifier = Modifier.padding(16.dp)) {
-                    // Dentro de un Box se usa la versión general de AnimatedVisibility
-                    // (la de ColumnScope no se puede llamar aquí)
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = estado.resumen == null,
-                        enter = Animaciones.entrada(),
-                        exit = Animaciones.salida()
-                    ) {
-                        Text(text = "Cargando...", style = MaterialTheme.typography.bodyLarge)
+            Box(modifier = Modifier.fillMaxWidth()) {
+                // Dentro de un Box se usa la versión general de AnimatedVisibility
+                // (la de ColumnScope no se puede llamar aquí)
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = estado.resumen == null,
+                    enter = Animaciones.entrada(),
+                    exit = Animaciones.salida()
+                ) {
+                    TarjetaPizzeria(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "Cargando...",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(Espacios.tarjeta)
+                        )
                     }
+                }
 
-                    // Dentro de un Box se usa la versión general de AnimatedVisibility
-                    // (la de ColumnScope no se puede llamar aquí)
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = estado.resumen != null,
-                        enter = Animaciones.entrada(),
-                        exit = Animaciones.salida()
-                    ) {
-                        // Se revisa de nuevo por si el resumen desaparece durante el Fade Out
-                        val resumen = estado.resumen ?: return@AnimatedVisibility
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(text = "Total de clientes: ${resumen.totalClientes}", style = MaterialTheme.typography.bodyLarge)
-                            Text(text = "Total de pedidos: ${resumen.totalPedidos}", style = MaterialTheme.typography.bodyLarge)
-                            Text(text = "Último cliente: ${resumen.ultimoCliente}", style = MaterialTheme.typography.bodyLarge)
-                        }
-                    }
+                // Dentro de un Box se usa la versión general de AnimatedVisibility
+                // (la de ColumnScope no se puede llamar aquí)
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = estado.resumen != null,
+                    enter = Animaciones.entrada(),
+                    exit = Animaciones.salida()
+                ) {
+                    // Se revisa de nuevo por si el resumen desaparece durante el Fade Out
+                    val resumen = estado.resumen ?: return@AnimatedVisibility
+                    BloqueResumen(resumen)
                 }
             }
 
-            Button(onClick = verPedidos, modifier = Modifier.fillMaxWidth()) {
-                Text("Ver pedidos")
-            }
-            Button(onClick = verClientes, modifier = Modifier.fillMaxWidth()) {
-                Text("Ver clientes")
-            }
+            // Empuja los botones hacia abajo de la pantalla
+            Spacer(modifier = Modifier.weight(1f))
+
+            BotonPrincipal(texto = "Ver pedidos", alPresionar = verPedidos)
+            BotonPrincipal(texto = "Ver clientes", alPresionar = verClientes)
         }
     }
 }
 
-@Preview(showBackground = true)
+// Los dos totales lado a lado con números grandes y, debajo, el último cliente
+@Composable
+private fun BloqueResumen(resumen: ResumenGeneral) {
+    Column(verticalArrangement = Arrangement.spacedBy(Espacios.entreTarjetas)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Espacios.entreTarjetas)) {
+            TarjetaTotal(etiqueta = "CLIENTES", valor = resumen.totalClientes, modifier = Modifier.weight(1f))
+            TarjetaTotal(etiqueta = "PEDIDOS", valor = resumen.totalPedidos, modifier = Modifier.weight(1f))
+        }
+
+        // Zona de énfasis en café oscuro, con la misma forma que las tarjetas
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.tertiary, MaterialTheme.shapes.medium)
+                .padding(Espacios.tarjeta + 4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = "ÚLTIMO CLIENTE",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.75f)
+            )
+            Text(
+                text = resumen.ultimoCliente,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onTertiary
+            )
+        }
+    }
+}
+
+// Tarjeta con una etiqueta pequeña y un número grande en rojo tomate
+@Composable
+private fun TarjetaTotal(etiqueta: String, valor: Int, modifier: Modifier = Modifier) {
+    TarjetaPizzeria(modifier = modifier) {
+        Column(modifier = Modifier.padding(Espacios.tarjeta + 4.dp)) {
+            Text(
+                text = etiqueta,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = valor.toString(),
+                style = MaterialTheme.typography.displayMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFF8F0)
 @Composable
 fun PantallaPrincipalPreview() {
     PizzeriaAppTheme {

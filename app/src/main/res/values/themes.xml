@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.PizzeriaApp" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Fondo crema mientras abre la app, igual al tema de Compose -->
+    <style name="Theme.PizzeriaApp" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/crema</item>
+    </style>
 </resources>
